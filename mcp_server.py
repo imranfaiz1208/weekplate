@@ -215,6 +215,26 @@ class TokenAuth:
                 current_token.set("testtoken123")
                 path = "/mcp"
 
-            scope = dict(scope, path=path, raw_path=path.encode("utf-8"))
+            # Normalize Accept header for MCP endpoints to prevent 406 Not Acceptable errors
+            headers = list(scope.get("headers", []))
+            if path == "/mcp":
+                new_headers = []
+                found_accept = False
+                for k, v in headers:
+                    if k.lower() == b"accept":
+                        found_accept = True
+                        val = v.decode("latin1", errors="ignore")
+                        if "text/event-stream" not in val:
+                            val += ", text/event-stream"
+                        if "application/json" not in val:
+                            val += ", application/json"
+                        new_headers.append((k, val.encode("latin1")))
+                    else:
+                        new_headers.append((k, v))
+                if not found_accept:
+                    new_headers.append((b"accept", b"application/json, text/event-stream, */*"))
+                headers = new_headers
+
+            scope = dict(scope, path=path, raw_path=path.encode("utf-8"), headers=headers)
 
         await self.app(scope, receive, send)

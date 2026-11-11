@@ -11,13 +11,12 @@ from typing import Optional
 
 import db
 
-# Auto-detect base URL for Vercel, Render, or local development
+# Auto-detect base URL: Always use the canonical production domain when deployed
 if os.environ.get("BASE_URL"):
     BASE = os.environ.get("BASE_URL")
-elif os.environ.get("VERCEL_PROJECT_PRODUCTION_URL"):
-    BASE = f"https://{os.environ.get('VERCEL_PROJECT_PRODUCTION_URL')}"
-elif os.environ.get("VERCEL_URL"):
-    BASE = f"https://{os.environ.get('VERCEL_URL')}"
+elif os.environ.get("VERCEL") or os.environ.get("VERCEL_URL") or os.environ.get("VERCEL_PROJECT_PRODUCTION_URL"):
+    # Always use the canonical production domain to bypass Vercel preview deployment protection
+    BASE = "https://weekplate-neon.vercel.app"
 else:
     BASE = "http://localhost:8000"
 
