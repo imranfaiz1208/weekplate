@@ -7,13 +7,19 @@ Zero AI inside: pure protocol transport and tool schemas.
 from contextvars import ContextVar
 from typing import Optional
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 import service as svc
 
 # Context variables set per request by TokenAuth middleware
 current_user: ContextVar[Optional[int]] = ContextVar("current_user", default=None)
 current_token: ContextVar[str] = ContextVar("current_token", default="")
 
-mcp = FastMCP("WeekPlate", stateless_http=True)
+# Disable local host-header validation so external cloud clients (Claude) can connect
+mcp = FastMCP(
+    "WeekPlate",
+    stateless_http=True,
+    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+)
 
 
 def _uid() -> int:
