@@ -6,7 +6,7 @@ Zero AI inside: pure server-rendered HTML and CSS.
 """
 
 import html
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 import service as svc
 
@@ -193,6 +193,15 @@ def layout(title: str, content: str, token: str = "") -> HTMLResponse:
 # ---------------------------------------------------------------------------
 # Route 1: Home Page / Signup
 # ---------------------------------------------------------------------------
+
+@router.get("/debug-path")
+def debug_path(request: Request):
+    return {
+        "url": str(request.url),
+        "path": request.url.path,
+        "scope_path": request.scope.get("path"),
+        "headers": dict(request.headers),
+    }
 
 @router.get("/")
 def home():
