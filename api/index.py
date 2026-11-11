@@ -16,3 +16,4 @@ from main import app
 
 # Ensure database tables and initial reviewer seed exist
 db.init()
+
