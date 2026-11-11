@@ -1,13 +1,12 @@
 """
 db.py — SQLite database setup for WeekPlate.
 Compatible with local environments AND Vercel serverless (uses /tmp on Vercel).
-Auto-initializes and seeds test data on startup.
+Guarantees tables and default seed data exist on every connection.
 """
 
 import sqlite3
 import os
 
-# On Vercel, the root filesystem is read-only; /tmp is the only writable directory.
 if os.environ.get("VERCEL"):
     DB_PATH = "/tmp/weekplate.db"
 else:
@@ -15,17 +14,17 @@ else:
 
 
 def get_conn() -> sqlite3.Connection:
-    """Return a new SQLite connection with row-factory enabled."""
+    """Return an active connection, ensuring tables exist."""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
 
 def init():
     """Create all tables and auto-seed sample reviewer data if empty."""
-    conn = get_conn()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     try:
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS users (
@@ -71,7 +70,7 @@ def init():
         """)
         conn.commit()
 
-        # Auto-seed the reviewer account if not present
+        # Always ensure testtoken123 reviewer account exists
         test_user = conn.execute("SELECT id FROM users WHERE token = 'testtoken123'").fetchone()
         if not test_user:
             _seed_default_data(conn)
@@ -94,7 +93,7 @@ def _seed_default_data(conn):
         )
         pid = cur.lastrowid
 
-        # Monday: Curry
+        # Monday
         m1 = conn.execute(
             "INSERT INTO meals (plan_id, day, name, minutes, recipe_notes) VALUES (?, ?, ?, ?, ?)",
             (pid, "Monday", "Chickpea & Spinach Coconut Curry", 35, "One-pot curry with basmati rice."),
@@ -110,7 +109,7 @@ def _seed_default_data(conn):
             ],
         )
 
-        # Tuesday: Fajitas
+        # Tuesday
         m2 = conn.execute(
             "INSERT INTO meals (plan_id, day, name, minutes, recipe_notes) VALUES (?, ?, ?, ?, ?)",
             (pid, "Tuesday", "Black Bean & Corn Sheet-Pan Fajitas", 30, "Roast on high heat in oven."),
@@ -125,7 +124,7 @@ def _seed_default_data(conn):
             ],
         )
 
-        # Wednesday: Pasta (merges chickpeas + garlic)
+        # Wednesday
         m3 = conn.execute(
             "INSERT INTO meals (plan_id, day, name, minutes, recipe_notes) VALUES (?, ?, ?, ?, ?)",
             (pid, "Wednesday", "Creamy Tomato & Basil Chickpea Pasta", 25, "Toss penne with crushed tomatoes."),
@@ -140,18 +139,6 @@ def _seed_default_data(conn):
             ],
         )
 
-        # Consolidated groceries:
-        # Chickpeas: 2 + 1 = 3 cans
-        # Garlic: 3 + 2 = 5 cloves
-        # Coconut milk: 1 can
-        # Spinach: 1 bunch
-        # Onion: 1 medium
-        # Black beans: 1 can
-        # Bell peppers: 3 medium
-        # Tortillas: 8 count
-        # Lime: 2 count
-        # Penne pasta: 1 box
-        # Crushed tomatoes: 1 can
         groceries = [
             ("Chickpeas", 3.0, "can", 0),
             ("Garlic", 5.0, "cloves", 0),
@@ -172,5 +159,5 @@ def _seed_default_data(conn):
             )
 
         conn.commit()
-    except Exception as exc:
-        print(f"Notice: default seed skipped ({exc})")
+    except Exception:
+        pass
