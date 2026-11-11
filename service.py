@@ -14,6 +14,8 @@ import db
 # Auto-detect base URL for Vercel, Render, or local development
 if os.environ.get("BASE_URL"):
     BASE = os.environ.get("BASE_URL")
+elif os.environ.get("VERCEL_PROJECT_PRODUCTION_URL"):
+    BASE = f"https://{os.environ.get('VERCEL_PROJECT_PRODUCTION_URL')}"
 elif os.environ.get("VERCEL_URL"):
     BASE = f"https://{os.environ.get('VERCEL_URL')}"
 else:
