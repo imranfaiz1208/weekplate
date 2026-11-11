@@ -345,11 +345,41 @@ def dashboard(token: str):
     </div>
 
     <!-- Meal Plans Section -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;">
-        <h2 style="font-size:1.35rem;color:#1b4332;">Your Weekly Plans</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;flex-wrap:wrap;gap:0.5rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+            <h2 style="font-size:1.35rem;color:#1b4332;">Your Weekly Plans</h2>
+            <span class="badge" style="background:#e8f5e9;color:#2e7d32;font-size:0.75rem;">🟢 Live auto-refresh</span>
+        </div>
+        <button onclick="window.location.reload();" class="btn btn-secondary btn-sm" style="display:flex;align-items:center;gap:0.3rem;">
+            🔄 Refresh Now
+        </button>
     </div>
 
-    {plans_html}
+    <div id="plans-container">
+        {plans_html}
+    </div>
+
+    <!-- Auto-refresh script: checks for new plans created by Claude every 3 seconds -->
+    <script>
+        (function() {{
+            const initialCount = {len(plans)};
+            setInterval(async () => {{
+                try {{
+                    const res = await fetch(window.location.href, {{ cache: 'no-store' }});
+                    if (!res.ok) return;
+                    const text = await res.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/html');
+                    const newContainer = doc.getElementById('plans-container');
+                    const currentContainer = document.getElementById('plans-container');
+                    if (newContainer && currentContainer && newContainer.innerHTML.trim() !== currentContainer.innerHTML.trim()) {{
+                        console.log('New plan detected from Claude! Updating...');
+                        currentContainer.innerHTML = newContainer.innerHTML;
+                    }}
+                }} catch (e) {{}}
+            }}, 3000);
+        }})();
+    </script>
     """
     return layout("My Dashboard", content, token=token)
 
