@@ -8,10 +8,10 @@
 
 ## ⚡ Submission Links (For Reviewers)
 
-- **Live Web App:** `https://weekplate.onrender.com` (or your local / deployed URL)
-- **Reviewer Instant Login:** `https://weekplate.onrender.com/u/testtoken123/` *(no password needed)*
-- **Claude MCP Connector URL:** `https://weekplate.onrender.com/u/testtoken123/mcp`
-- **Family Public Share Page:** `https://weekplate.onrender.com/s/sample_family_plan`
+- **Live Web App:** `https://weekplate-mif2.vercel.app`
+- **Reviewer Instant Login:** `https://weekplate-mif2.vercel.app/u/testtoken123/` *(no password needed)*
+- **Claude MCP Connector URL:** `https://weekplate-mif2.vercel.app/u/testtoken123/mcp`
+- **Family Public Share Page:** `https://weekplate-mif2.vercel.app/s/sample_family_plan`
 
 ---
 
@@ -21,7 +21,7 @@
 2. Click **Add custom connector**.
 3. Fill in:
    - **Name:** `WeekPlate`
-   - **URL:** `https://weekplate.onrender.com/u/testtoken123/mcp`
+   - **URL:** `https://weekplate-mif2.vercel.app/u/testtoken123/mcp`
 4. Click **Save**.
 5. Start a new chat, make sure the **WeekPlate** connector is enabled, and type:
    > *"Plan 5 vegetarian dinners for 4 people, under 45 minutes each, no mushrooms. Save it in WeekPlate."*
