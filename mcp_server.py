@@ -173,13 +173,13 @@ def get_grocery_list(plan_id: int) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# ASGI Middleware: User identification via Secret Token in URL
+# ASGI Middleware: User identification & Path Normalization
 # ---------------------------------------------------------------------------
 
 class TokenAuth:
     """
     Wrap the ASGI application:
-    Intercepts /u/<token>/mcp -> /mcp
+    Normalizes Vercel /api rewrites, and intercepts /u/<token>/mcp -> /mcp.
     Extracts the user from the token and stores it in ContextVars for this request.
     Stateless, zero session storage, perfectly secure for multi-tenant hosting.
     """
@@ -189,7 +189,15 @@ class TokenAuth:
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
-            parts = scope["path"].split("/")  # ['', 'u', '<token>', 'mcp']
+            path = scope.get("path", "/")
+
+            # Strip Vercel /api or /api/index prefix if added by rewrite
+            if path.startswith("/api/index"):
+                path = path[10:] or "/"
+            elif path.startswith("/api"):
+                path = path[4:] or "/"
+
+            parts = path.split("/")  # ['', 'u', '<token>', 'mcp']
             if len(parts) >= 4 and parts[1] == "u" and parts[3] == "mcp":
                 token = parts[2]
                 user = svc.user_by_token(token)
@@ -207,6 +215,8 @@ class TokenAuth:
                 current_user.set(user["id"])
                 current_token.set(token)
                 # Rewrite path to /mcp so FastMCP receives it cleanly
-                scope = dict(scope, path="/mcp", raw_path=b"/mcp")
+                path = "/mcp"
+
+            scope = dict(scope, path=path, raw_path=path.encode("utf-8"))
 
         await self.app(scope, receive, send)
